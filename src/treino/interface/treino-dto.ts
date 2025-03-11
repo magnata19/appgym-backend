@@ -1,4 +1,4 @@
-export class TreinoDto {
+export class ITreinoDto {
   tipoTreino: string;
   descricaoTreino: string;
   quantidadeSeries: string;

@@ -1,60 +1,51 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTreinadorDto } from './dto/create-user.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/config/prisma-config';
-import { TreinoDto } from './dto/treino-dto';
-import { Treinadores, Treinos } from '@prisma/client';
+import { ICreateUserLogin } from './interface/user-interface';
+import { User, UserRoles } from '@prisma/client';
+import { ICreateProfileDto } from './interface/profile-dto';
 
 @Injectable()
 export class UsersService {
   constructor(private prismaService: PrismaService) { }
 
-  async create(createTreinadorDto: CreateTreinadorDto): Promise<any> {
-    const treinador = await this.prismaService.treinadores.create({
+  async createUser(adminDto: ICreateUserLogin): Promise<any> {
+    const userAdmin = await this.prismaService.user.create({
       data: {
-        nome_treinador: createTreinadorDto.nome,
-        cpf_treinador: createTreinadorDto.cpf,
-        data_nascimento: createTreinadorDto.dataNascimento,
-        salario_treinador: createTreinadorDto.salario,
-        endereco_treinador: {
+        username: adminDto.username,
+        senha: adminDto.senha,
+        perfil: UserRoles.ADMIN,
+      }
+    })
+    return { admin: userAdmin }
+  }
+
+
+  async createUserProfile(user: User, profile: ICreateProfileDto) {
+    const existingUser = await this.prismaService.user.findFirst({ where: { id: user.id } })
+    if (!existingUser) {
+      throw new NotFoundException("Usuário não encontrado.")
+    }
+
+    const userProfile = await this.prismaService.profile.create({
+      data: {
+        user_Id: user.id,
+        nome: profile.nome,
+        sobrenome: profile.sobrenome,
+        cpf: profile.cpf,
+        data_nascimento: profile.cpf,
+        salario: profile.salario,
+        endereco: {
           create: {
-            estado: createTreinadorDto.endereco.cidade,
-            cidade: createTreinadorDto.endereco.cidade,
-            bairro: createTreinadorDto.endereco.bairro,
-            rua: createTreinadorDto.endereco.rua,
-            numero: createTreinadorDto.endereco.numero
+            cidade: profile.endereco.cidade,
+            estado: profile.endereco.estado,
+            bairro: profile.endereco.bairro,
+            rua: profile.endereco.rua,
+            numero: profile.endereco.numero
           }
-        },
-        perfil: createTreinadorDto.perfil,
+        }
       }
     })
-    return
-  }
 
-  async criarTreino(treinoDto: TreinoDto): Promise<any> {
-    const treino = await this.prismaService.treinos.create({
-      data: {
-        tipo_treino: treinoDto.tipoTreino,
-        descricao_treino: treinoDto.descricaoTreino,
-        dia_da_semana: treinoDto.diaDaSemana,
-        quantidade_repeticoes: treinoDto.quantidadeRepeticoes,
-        quantidade_series: treinoDto.quantidadeSeries,
-      }
-    })
-    return treino;
-  }
-
-  async anexarTreino(treinadorDto: Treinadores, treinoDto: Treinos) {
-
-  }
-
-  findAll(): Promise<any> {
-    return this.prismaService.treinadores.findMany();
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+    return { profile: userProfile }
   }
 }

@@ -1,14 +1,16 @@
-import { Perfil } from "@prisma/client";
-import { EnderecoDto } from "./endereco-dto";
-import { TreinoDto } from "./treino-dto";
+import { $Enums, UserRoles } from "@prisma/client";
+import { ICreateUserLogin } from "../interface/user-interface";
+import { IsNotEmpty, IsString } from "class-validator";
 
-export class CreateTreinadorDto {
-  nome: string;
-  cpf: string;
-  dataNascimento: string;
-  salario: number;
-  endereco: EnderecoDto
-  treinos: TreinoDto[]
-  perfil: Perfil;
+export class CreateUserLogin implements ICreateUserLogin {
+
+  @IsString()
+  @IsNotEmpty()
+  username: string;
+
+
+  @IsString()
+  @IsNotEmpty()
+  senha: string;
 
 }
