@@ -1,22 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/config/prisma-config';
-import { ICreateUserLogin } from './interface/user-interface';
 import { User, UserRoles } from '@prisma/client';
 import { ICreateProfileDto } from './interface/profile-dto';
+import * as bcrypt from 'bcrypt';
+import { CreateUserLogin } from './dto/create.user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(private prismaService: PrismaService) { }
 
-  async createUser(adminDto: ICreateUserLogin): Promise<any> {
-    const userAdmin = await this.prismaService.user.create({
+  async createUser(loginDto: CreateUserLogin): Promise<any> {
+    const hashedPassword = await bcrypt.hashSync(loginDto.password, 10);
+    const userLogin = await this.prismaService.user.create({
       data: {
-        username: adminDto.username,
-        senha: adminDto.senha,
-        perfil: UserRoles.ADMIN,
+        username: loginDto.username,
+        senha: hashedPassword,
+        perfil: UserRoles.ALUNO,
       }
     })
-    return { admin: userAdmin }
+    return { login: userLogin }
   }
 
 
@@ -25,7 +27,6 @@ export class UsersService {
     if (!existingUser) {
       throw new NotFoundException("Usuário não encontrado.")
     }
-
     const userProfile = await this.prismaService.profile.create({
       data: {
         user_Id: user.id,

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/config/prisma-config';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -15,18 +16,16 @@ export class AuthService {
       if (!existingUser) {
         throw new NotFoundException("Usuário não encontrado.")
       }
-      if (existingUser?.senha !== password) {
+      if (!bcrypt.compareSync(password, existingUser.senha)) {
         throw new UnauthorizedException("Senha inválida!")
       }
 
       const payload = { sub: existingUser.id, username: existingUser.username }
-
       return {
-        access_token: await this.jwtService.signAsync(payload);
+        access_token: await this.jwtService.signAsync(payload)
       }
-
-    } catch {
-      throw new BadRequestException("Deu ruim aqui")
+    } catch (err) {
+      throw new BadRequestException("Deu ruim aqui", err.message)
     }
   }
 }

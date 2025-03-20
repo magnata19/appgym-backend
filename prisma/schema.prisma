@@ -14,6 +14,8 @@ model User {
   perfil    UserRoles @default(ALUNO)
   profile   Profile?
   profileId Int?
+
+  @@map("users")
 }
 
 model Profile {
