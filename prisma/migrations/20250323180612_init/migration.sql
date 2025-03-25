@@ -1,19 +1,16 @@
-/*
-  Warnings:
-
-  - The `perfil` column on the `User` table would be dropped and recreated. This will lead to data loss if there is data in the column.
-
-*/
 -- CreateEnum
 CREATE TYPE "UserRoles" AS ENUM ('ADMIN', 'TREINADOR', 'ALUNO');
 
--- AlterTable
-ALTER TABLE "User" ADD COLUMN     "profileId" INTEGER,
-DROP COLUMN "perfil",
-ADD COLUMN     "perfil" "UserRoles" NOT NULL DEFAULT 'ALUNO';
+-- CreateTable
+CREATE TABLE "users" (
+    "id" SERIAL NOT NULL,
+    "username" TEXT NOT NULL,
+    "senha" TEXT NOT NULL,
+    "perfil" "UserRoles" NOT NULL DEFAULT 'ALUNO',
+    "profileId" INTEGER,
 
--- DropEnum
-DROP TYPE "Perfil";
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Profile" (
@@ -25,7 +22,7 @@ CREATE TABLE "Profile" (
     "data_nascimento" TEXT NOT NULL,
     "salario" INTEGER,
     "endereco_id" INTEGER,
-    "user_Id" INTEGER NOT NULL,
+    "user_Id" INTEGER,
 
     CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
 );
@@ -52,9 +49,13 @@ CREATE TABLE "Enderecos" (
     "bairro" TEXT NOT NULL,
     "rua" TEXT NOT NULL,
     "numero" INTEGER NOT NULL,
+    "profileId" INTEGER,
 
     CONSTRAINT "Enderecos_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Profile_profile_id_key" ON "Profile"("profile_id");
@@ -77,11 +78,14 @@ CREATE UNIQUE INDEX "Treinos_tipo_treino_key" ON "Treinos"("tipo_treino");
 -- CreateIndex
 CREATE UNIQUE INDEX "Enderecos_endereco_id_key" ON "Enderecos"("endereco_id");
 
--- AddForeignKey
-ALTER TABLE "Profile" ADD CONSTRAINT "Profile_endereco_id_fkey" FOREIGN KEY ("endereco_id") REFERENCES "Enderecos"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "Enderecos_profileId_key" ON "Enderecos"("profileId");
 
 -- AddForeignKey
-ALTER TABLE "Profile" ADD CONSTRAINT "Profile_user_Id_fkey" FOREIGN KEY ("user_Id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Profile" ADD CONSTRAINT "Profile_user_Id_fkey" FOREIGN KEY ("user_Id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Treinos" ADD CONSTRAINT "Treinos_treino_id_fkey" FOREIGN KEY ("treino_id") REFERENCES "Profile"("profile_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Enderecos" ADD CONSTRAINT "Enderecos_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE SET NULL ON UPDATE CASCADE;

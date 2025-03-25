@@ -2,24 +2,31 @@ import { Injectable } from '@nestjs/common';
 import { Profile, User } from '@prisma/client';
 import { PrismaService } from 'src/config/prisma-config';
 import { ITreinoDto } from './interface/treino-dto';
+import { IRequest } from 'src/users/interface/custom-request';
 
 @Injectable()
 export class TreinoService {
   constructor(private prismaService: PrismaService) { }
 
-  async criarTreino(id: number, treinoDto: ITreinoDto) {
-    const profileFound = await this.prismaService.profile.findFirst({ where: { profile_id: id } })
+  async criarTreino(treinoDto: ITreinoDto) {
+
+    let user: IRequest["user"];
+
+    const currentUser = await this.prismaService.user.findFirstOrThrow({
+      where: { id: user?.id }
+    })
+
     const treino = await this.prismaService.treinos.create({
       data: {
-        treino_id: profileFound?.id,
-        descricao_treino: treinoDto.descricaoTreino,
-        dia_da_semana: treinoDto.diaDaSemana,
-        quantidade_repeticoes: treinoDto.quantidadeRepeticoes,
-        quantidade_series: treinoDto.quantidadeSeries,
-        tipo_treino: treinoDto.tipoTreino
+        userId: currentUser.id,
+        descricaoTreino: treinoDto.descricaoTreino,
+        diaDaSemana: treinoDto.diaDaSemana,
+        quantidadeRepeticoes: treinoDto.quantidadeRepeticoes,
+        quantidadeSeries: treinoDto.quantidadeSeries,
+        tipoTreino: treinoDto.tipoTreino
       }
     })
 
-    return { treino: treino }
+    return { treino }
   }
 }

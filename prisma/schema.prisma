@@ -8,52 +8,54 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  username  String    @unique
-  senha     String
-  perfil    UserRoles @default(ALUNO)
-  profile   Profile?
-  profileId Int?
+  id       Int       @id @default(autoincrement())
+  username String    @unique
+  senha    String
+  perfil   UserRoles @default(ALUNO)
+  profile  Profile?
+  Treinos  Treinos?
 
   @@map("users")
 }
 
 model Profile {
   id              Int        @id @default(autoincrement())
-  profile_id      Int?       @unique
   nome            String
   sobrenome       String
   cpf             String     @unique
   data_nascimento String
   salario         Int?
-  endereco_id     Int?       @unique
-  endereco        Enderecos?
-  treinos         Treinos[]
-  user            User       @relation(fields: [user_Id], references: [id])
-  user_Id         Int        @unique
+  endereco        Enderecos? @relation()
+  userId          Int?       @unique
+  user            User?      @relation(fields: [userId], references: [id])
+
+  @@map("profiles")
 }
 
 model Treinos {
-  id                    Int      @id @default(autoincrement())
-  treino_id             Int      @unique
-  tipo_treino           String   @unique
-  descricao_treino      String
-  quantidade_series     String
-  quantidade_repeticoes String
-  dia_da_semana         String
-  profile               Profile? @relation(fields: [treino_id], references: [profile_id])
+  id                   Int    @id @default(autoincrement())
+  userId               Int    @unique
+  tipoTreino           String @unique
+  descricaoTreino      String
+  quantidadeSeries     String
+  quantidadeRepeticoes String
+  diaDaSemana          String
+  user                 User?  @relation(fields: [userId], references: [id])
+
+  @@map("treinos")
 }
 
 model Enderecos {
-  id          Int      @id @default(autoincrement())
-  endereco_id Int?     @unique
-  estado      String
-  cidade      String
-  bairro      String
-  rua         String
-  numero      Int
-  profile     Profile? @relation(fields: [profileId], references: [id])
-  profileId   Int?     @unique
+  id        Int      @id @default(autoincrement())
+  estado    String
+  cidade    String
+  bairro    String
+  rua       String
+  numero    Int
+  profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId Int?     @unique
+
+  @@map("enderecos")
 }
 
 enum UserRoles {
